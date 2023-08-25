@@ -1,12 +1,5 @@
-import pyglet
 from OpenGL.GL import *
 import numpy as np
-from pathlib import Path
-import os
-import sys
-# No es necesaria la siguiente línea si el archivo está en el root del repositorio
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname((os.path.abspath(__file__))))))
-import grafica.transformations as tr
 
 SIZE_IN_BYTES = 4
 
