@@ -4,6 +4,7 @@ import numpy as np
 import trimesh as tm
 import os
 import sys
+from pathlib import Path
 # No es necesaria la siguiente línea si el archivo está en el root del repositorio
 sys.path.append(os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 import grafica.transformations as tr
@@ -66,38 +67,15 @@ class Model():
         return np.reshape(transformation, (16, 1), order="F")
 
 
-vertex_source_code = """
-    #version 330
-
-    in vec3 position;
-    in vec3 color;
-
-    uniform mat4 u_model = mat4(1.0);
-
-    out vec3 fragColor;
-
-    void main()
-    {
-        fragColor = color;
-        gl_Position = u_model * vec4(position, 1.0f);
-    }
-"""
-
-fragment_source_code = """
-    #version 330
-
-    in vec3 fragColor;
-    out vec4 outColor;
-
-    void main()
-    {
-        outColor = vec4(fragColor, 1.0f);
-    }
-""" 
-
 if __name__ == "__main__":
     # Instancia del controller
     controller = Controller("Auxiliar 3", width=WIDTH, height=HEIGHT, resizable=True)
+
+    with open(Path(os.path.dirname(__file__)) / "shaders/transform.vert") as f:
+        vertex_source_code = f.read()
+
+    with open(Path(os.path.dirname(__file__)) / "shaders/color.frag") as f:
+        fragment_source_code = f.read()
 
     vert_shader = pyglet.graphics.shader.Shader(vertex_source_code, "vertex")
     frag_shader = pyglet.graphics.shader.Shader(fragment_source_code, "fragment")
