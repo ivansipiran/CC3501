@@ -192,6 +192,113 @@ class SceneGraph():
                     current_pipeline["u_color"] = np.array(current_node["color"], dtype=np.float32)
                 current_node["mesh"].draw(current_node["mode"])
 
+class SolarSystem():
+    def __init__(self, planet_mesh, camera):
+        solar_system = SceneGraph(camera)
+        solar_system.add_node("sun",mesh=planet_mesh, color=shapes.YELLOW)
+
+        solar_system.add_node("mercury", mesh=planet_mesh, color=shapes.GRAY, scale=[0.12, 0.12, 0.12], position=[1, 0, 0])
+        solar_system.add_node("venus", mesh=planet_mesh, color=shapes.ORANGE, scale=[0.3, 0.3, 0.3], position=[2, 0, 0])
+        solar_system.add_node("earth_moon", position=[3, 0, 0])
+        solar_system.add_node("earth", attach_to="earth_moon", mesh=planet_mesh, color=shapes.BLUE, scale=[0.4, 0.4, 0.4], position=[0, 0, 0])
+        solar_system.add_node("moon", attach_to="earth_moon", mesh=planet_mesh, color=shapes.GRAY, scale=[0.1, 0.1, 0.1], position=[0.5, 0, 0])
+
+        solar_system.add_node("mars", mesh=planet_mesh, color=shapes.RED, scale=[0.25, 0.25, 0.25], position=[4, 0, 0])
+        self.graph = solar_system
+
+    def draw(self):
+        self.graph.draw()
+
+    def update(self, dt):
+        self.graph["sun"]["rotation"][1] -= 0.1
+        self.graph["mercury"]["rotation"][1] += 0.1
+        self.graph["venus"]["rotation"][1] += 0.1
+        self.graph["earth_moon"]["rotation"][1] += 0.1
+        self.graph["earth"]["rotation"][1] += 0.1
+        self.graph["moon"]["rotation"][1] += 0.1
+        self.graph["mars"]["rotation"][1] += 0.1
+
+        self.graph["mercury"]["transform"] = tr.rotationY(dt * 4)
+        self.graph["venus"]["transform"] = tr.rotationY(dt * 3)
+        self.graph["earth_moon"]["transform"] = tr.rotationY(dt * 2)
+        self.graph["moon"]["transform"] = tr.rotationY(dt)
+        self.graph["mars"]["transform"] = tr.rotationY(dt)
+
+class Person():
+    def __init__(self, mesh, camera):
+        self.graph = SceneGraph(camera)
+        self.graph.add_node("body")
+        self.graph.add_node("chest",
+                             attach_to="body",
+                             mesh=mesh,
+                             color=shapes.RED,
+                             scale=[0.5, 1, 0.35]
+                            )
+        self.graph.add_node("head",
+                             attach_to="body",
+                             mesh=mesh,
+                             color=shapes.CYAN,
+                             position=[0, 0.75, 0],
+                             scale=[0.35, 0.35, 0.35]
+                            )
+        self.graph.add_node("left_arm",
+                             attach_to="body",
+                             mesh=mesh,
+                             color=shapes.GREEN,
+                             position=[-0.5, 0, 0],
+                             rotation=[0, 0, -0.5],
+                             scale=[0.2, 1, 0.2]
+                            )
+        self.graph.add_node("right_arm",
+                             attach_to="body",
+                             mesh=mesh, color=shapes.GREEN,
+                             position=[0.5, 0, 0],
+                             rotation=[0, 0, 0.5],
+                             scale=[0.2, 1, 0.2],
+                            )
+        self.graph.add_node("left_leg", attach_to="body")
+        self.graph.add_node("right_leg", attach_to="body")
+        self.graph.add_node("left_upper_leg",
+                             attach_to="left_leg",
+                             mesh=mesh, color=shapes.BLUE,
+                             position=[-0.2, -0.85, 0],
+                             rotation=[0, 0, -0.15],
+                             scale=[0.25, 0.75, 0.25],
+                            )
+        self.graph.add_node("right_upper_leg",
+                             attach_to="right_leg",
+                             mesh=mesh, color=shapes.BLUE,
+                             position=[0.2, -0.85, 0],
+                             rotation=[0, 0, 0.15],
+                             scale=[0.25, 0.75, 0.25],
+                            )
+        self.graph.add_node("left_lower_leg",
+                             attach_to="left_leg",
+                             mesh=mesh, color=shapes.DARK_BLUE,
+                             position=[-0.25, -1.5, 0],
+                             scale=[0.2, 0.75, 0.2],
+                            )
+        self.graph.add_node("right_lower_leg",
+                             attach_to="right_leg",
+                             mesh=mesh, color=shapes.DARK_BLUE,
+                             position=[0.25, -1.5, 0],
+                             scale=[0.2, 0.75, 0.2],
+                            )
+
+    def draw(self):
+        self.graph.draw()  
+
+    def walk(self, dt):
+        limb_rotation = np.sin(dt * 5) / 2
+        self.graph["left_arm"]["transform"] = tr.translate(0, 0.5, 0) @ tr.rotationX(limb_rotation) @ tr.translate(0, -0.5, 0)
+        self.graph["right_arm"]["transform"] = tr.translate(0, 0.5, 0) @ tr.rotationX(-limb_rotation) @ tr.translate(0, -0.5, 0)
+        self.graph["left_leg"]["transform"] = tr.translate(0, -0.5, 0) @ tr.rotationX(-limb_rotation) @ tr.translate(0, 0.5, 0)
+        self.graph["right_leg"]["transform"] = tr.translate(0, -0.5, 0) @ tr.rotationX(limb_rotation) @ tr.translate(0, 0.5, 0)
+
+        lower_limb_rotation = np.cos(dt * 5) / 3
+        self.graph["left_lower_leg"]["transform"] = tr.translate(0, -1.125, 0) @ tr.rotationX(lower_limb_rotation + 0.25) @ tr.translate(0, 1.125, 0)
+        self.graph["right_lower_leg"]["transform"] = tr.translate(0, -1.125, 0) @ tr.rotationX(lower_limb_rotation + 0.25) @ tr.translate(0, 1.125, 0)
+
 
 if __name__ == "__main__":
     # Instancia del controller
@@ -245,7 +352,6 @@ if __name__ == "__main__":
                    mesh=cube,
                    color=shapes.YELLOW,
                    transform=tr.translate(1, 1, 0))
-    """
     graph.add_node("rotated",
                    attach_to="shapes",
                    mesh=cube,
@@ -256,7 +362,9 @@ if __name__ == "__main__":
                    mesh=sphere,
                    color=shapes.BLUE,
                    transform=tr.scale(2, 1, 2))
-    """
+    
+    solar_system = SolarSystem(sphere, camera)
+    person = Person(cube, camera)
 
     print("Controles Cámara:\n\tWASD: Rotar\n\t Q/E: Acercar/Alejar\n\t1/2: Cambiar tipo")
     def update(dt):
@@ -279,9 +387,13 @@ if __name__ == "__main__":
         if controller.is_key_pressed(pyglet.window.key._2):
             camera.type = "orthographic"
 
-        #graph["shapes"]["rotation"][1] += dt
-        #graph["rotated"]["position"][0] += dt
-        #graph["translated"]["rotation"][1] += dt
+        # Aquí se seleccionan los nodos de cada grafo y se cambia su estado
+        graph["shapes"]["rotation"][1] += dt
+        graph["rotated"]["position"][0] += dt
+        graph["translated"]["rotation"][1] += dt
+
+        solar_system.update(controller.program_state["total_time"])
+        person.walk(controller.program_state["total_time"])
         
         camera.update()
 
@@ -293,7 +405,7 @@ if __name__ == "__main__":
     @controller.event
     def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 
-        controlled_shape = None
+        controlled_shape = person.graph["root"]
 
         if controlled_shape is None:
             return
@@ -311,7 +423,11 @@ if __name__ == "__main__":
     def on_draw():
         controller.clear()
         axis_scene.draw()
-        graph.draw()
+
+        # Aquí se dibujan los grafos, descomentar según se necesite
+        #graph.draw()
+        #solar_system.draw()
+        person.draw()
 
     pyglet.clock.schedule_interval(update, 1/60)
     pyglet.app.run()
