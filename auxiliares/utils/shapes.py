@@ -37,6 +37,11 @@ Triangle = {
         -0.5, -0.5, 0.0,
          0.5, -0.5, 0.0,
          0.0,  0.5, 0.0],
+    'uv': [
+        0, 0,
+        1, 0,
+        0.5, 1],
+    'normal': [ 0, 0, 1] * 3,
     'color': [
         *RED,
         *GREEN,
@@ -54,6 +59,14 @@ Square = {
         *GREEN,
         *CYAN,
         *MAGENTA ],
+    'uv': [
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    ],
+    'normal':
+        [0, 0, 1] * 4,
     'indices': [
         0, 1, 2,
         2, 3, 0 ]
@@ -122,6 +135,50 @@ Cube = {
         *MAGENTA,
         *MAGENTA,
         *MAGENTA ],
+    'uv': [
+        # Cara frontal
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1,
+        # Cara trasera
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1,
+        # Cara izquierda
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1,
+        # Cara derecha
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1,
+        # Cara superior
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1,
+        # Cara inferior
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1 ],
+    'normal': [
+        # Cara frontal
+        *([0, 0, 1]*4),
+        # Cara trasera
+        *([0, 0, -1]*4),
+        # Cara izquierda
+        *([-1, 0, 0]*4),
+        # Cara derecha
+        *([1, 0, 0]*4),
+        # Cara superior
+        *([0, 1, 0]*4),
+        # Cara inferior
+        *([0, -1, 0]*4) ],
     'indices': [
         # Cara frontal
         0, 1, 2,
@@ -188,6 +245,39 @@ SquarePyramid = {
         *MAGENTA,
         *MAGENTA,
         *MAGENTA ],
+    'uv': [
+        # Cara frontal
+        0, 0,
+        1, 0,
+        0.5, 1,
+        # Cara trasera
+        0, 0,
+        1, 0,
+        0.5, 1,
+        # Cara izquierda
+        0, 0,
+        1, 0,
+        0.5, 1,
+        # Cara derecha
+        0, 0,
+        1, 0,
+        0.5, 1,
+        # Cara inferior
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1 ],
+    'normal': [
+        # Cara frontal
+        *([0, 0, 1]*3),
+        # Cara trasera
+        *([0, 0, -1]*3),
+        # Cara izquierda
+        *([-1, 0, 0]*3),
+        # Cara derecha
+        *([1, 0, 0]*3),
+        # Cara inferior
+        *([0, -1, 0]*4) ],
     'indices': [
         # Cara frontal
         0, 1, 2,
