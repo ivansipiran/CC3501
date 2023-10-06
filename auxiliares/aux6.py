@@ -48,30 +48,57 @@ if __name__ == "__main__":
     controller.program_state["camera"] = FreeCamera([1, 2, 2], "perspective")
     controller.program_state["camera"].yaw = -3* np.pi/ 4
     controller.program_state["camera"].pitch = -np.pi / 4
+
+    controller.program_state["light"] = DirectionalLight()
     
     axis_scene = init_axis(controller)
 
     color_mesh_pipeline = init_pipeline(
         get_path("auxiliares/shaders/color_mesh.vert"),
         get_path("auxiliares/shaders/color_mesh.frag"))
+    
+    textured_mesh_pipeline = init_pipeline(
+        get_path("auxiliares/shaders/textured_mesh.vert"),
+        get_path("auxiliares/shaders/textured_mesh.frag"))
+    
+    lit_textured_mesh_pipeline = init_pipeline(
+        get_path("auxiliares/shaders/textured_mesh_lit.vert"),
+        get_path("auxiliares/shaders/textured_mesh_lit.frag"))
 
     cube = Model(shapes.Cube["position"], shapes.Cube["uv"], shapes.Cube["normal"], index_data=shapes.Cube["indices"])
     pyramid = Model(shapes.SquarePyramid["position"], shapes.SquarePyramid["uv"], shapes.SquarePyramid["normal"], index_data=shapes.SquarePyramid["indices"])
     triangle = Model(shapes.Triangle["position"], shapes.Triangle["uv"], shapes.Triangle["normal"])
     quad = Model(shapes.Square["position"], shapes.Square["uv"], shapes.Square["normal"], index_data=shapes.Square["indices"])
 
+    textura = Texture("assets/bricks.jpg")
+    textura2 = Texture("assets/boo.png", maxFilterMode=GL.GL_NEAREST)
+
     graph = SceneGraph(controller)
     graph.add_node("shapes")
+
+    # mesh_from_file() devuelve una lista de diccionarios, cada uno con la información de un mesh
+    # [{id, mesh, texture}, ...]
+    zorzal = mesh_from_file("assets/zorzal.obj")
+    for i in range(len(zorzal)):
+        graph.add_node(zorzal[i]["id"],
+                    attach_to="root",
+                    mesh=zorzal[i]["mesh"],
+                    pipeline=textured_mesh_pipeline,
+                    texture=zorzal[i]["texture"],
+                    cull_face=False)
+
     graph.add_node("cube",
                    attach_to="shapes",
                    mesh = cube,
-                   pipeline = color_mesh_pipeline,
+                   pipeline = lit_textured_mesh_pipeline,
+                   texture = textura,
                    position = [-2, 0, 0],
                    color = [1, 0, 0])
     graph.add_node("pyramid",
                      attach_to="shapes",
                      mesh = pyramid,
-                     pipeline = color_mesh_pipeline,
+                     pipeline = lit_textured_mesh_pipeline,
+                     texture=Texture(), # Textura vacía
                      position = [2, 0, 0],
                      color = [0, 1, 0])
     graph.add_node("triangle",
@@ -83,13 +110,15 @@ if __name__ == "__main__":
     graph.add_node("quad",
                     attach_to="shapes",
                     mesh = quad,
-                    pipeline = color_mesh_pipeline,
+                    pipeline = textured_mesh_pipeline,
+                    texture = textura2,
                     position = [0, 0, -2],
-                    color = [1, 1, 0])
+                    color = [1, 1, 1])
     
     def update(dt):
         controller.program_state["total_time"] += dt
         camera = controller.program_state["camera"]
+        light = controller.program_state["light"]
         if controller.is_key_pressed(pyglet.window.key.A):
             camera.position -= camera.right * dt
         if controller.is_key_pressed(pyglet.window.key.D):
@@ -107,6 +136,15 @@ if __name__ == "__main__":
         if controller.is_key_pressed(pyglet.window.key._2):
             camera.type = "orthographic"
         camera.update()
+
+        if controller.is_key_pressed(pyglet.window.key.UP):
+            light.rotateX(-dt)
+        if controller.is_key_pressed(pyglet.window.key.DOWN):
+            light.rotateX(dt)
+        if controller.is_key_pressed(pyglet.window.key.LEFT):
+            light.rotateY(-dt)
+        if controller.is_key_pressed(pyglet.window.key.RIGHT):
+            light.rotateY(dt)
 
     @controller.event
     def on_resize(width, height):
