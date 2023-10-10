@@ -43,15 +43,30 @@ class Texture():
         glBindTexture(GL_TEXTURE_2D, 0)
 
 class DirectionalLight():
-    def __init__(self, direction = [0, 1, 0], color = [1, 1, 1]):
-        self.direction = np.array([*direction, 1], dtype=np.float32)
-        self.color = np.array(color, dtype=np.float32)
+    def __init__(self, diffuse = [1, 1, 1], specular = [1, 1, 1], ambient = [0.1, 0.1, 0.1]):
+        self.diffuse = np.array(diffuse, dtype=np.float32)
+        self.specular = np.array(specular, dtype=np.float32)
+        self.ambient = np.array(ambient, dtype=np.float32)
 
-    def rotateX(self, angle):
-        self.direction = tr.rotationX(angle) @ self.direction
+class PointLight():
+    def __init__(self, diffuse = [1, 1, 1], specular = [1, 1, 1], ambient = [0.1, 0.1, 0.1], constant = 1.0, linear = 0.09, quadratic = 0.032):
+        self.diffuse = np.array(diffuse, dtype=np.float32)
+        self.specular = np.array(specular, dtype=np.float32)
+        self.ambient = np.array(ambient, dtype=np.float32)
+        self.constant = constant
+        self.linear = linear
+        self.quadratic = quadratic
 
-    def rotateY(self, angle):
-        self.direction = tr.rotationY(angle) @ self.direction
+class SpotLight():
+    def __init__(self, diffuse = [1, 1, 1], specular = [1, 1, 1], ambient = [0.1, 0.1, 0.1], constant = 1.0, linear = 0.09, quadratic = 0.032, cutOff = 0.91, outerCutOff = 0.82):
+        self.diffuse = np.array(diffuse, dtype=np.float32)
+        self.specular = np.array(specular, dtype=np.float32)
+        self.ambient = np.array(ambient, dtype=np.float32)
+        self.constant = constant
+        self.linear = linear
+        self.quadratic = quadratic
+        self.cutOff = cutOff
+        self.outerCutOff = outerCutOff
 
 class Model():
     def __init__(self, position_data, uv_data=None, normal_data=None, index_data=None):
@@ -97,3 +112,10 @@ class Model():
             glDisable(GL_CULL_FACE)
         self.gpu_data.draw(mode)
         glEnable(GL_CULL_FACE)
+
+class Material():
+    def __init__(self, ambient=[1, 1, 1], diffuse=[0.1, 0.1, 0.1], specular=[1, 1, 1], shininess=32.0):
+        self.ambient = np.array(ambient, dtype=np.float32)
+        self.diffuse = np.array(diffuse, dtype=np.float32)
+        self.specular = np.array(specular, dtype=np.float32)
+        self.shininess = shininess
