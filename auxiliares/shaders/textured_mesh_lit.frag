@@ -123,7 +123,7 @@ vec3 computeSpotLight(vec3 normal, vec3 viewDir, SpotLight light) {
     vec3 specular = light.specular * (spec * u_material.specular);
 
     // spotlight intensity
-    float theta = dot(lightDir, normalize(-light.direction));
+    float theta = dot(lightDir, normalize(light.direction));
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0f, 1.0f);
 

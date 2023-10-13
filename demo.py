@@ -109,7 +109,7 @@ if __name__ == "__main__":
     graph.add_node("spotlight",
                     pipeline=textured_mesh_lit_pipeline,
                     position=[0, 3, 0],
-                    rotation=[np.pi/4, 0, 0],
+                    rotation=[-np.pi/4, 0, 0],
                     light=SpotLight(diffuse = [1, 1, 1],
                           specular = [0, 1, 0],
                           ambient = [0.1, 0.1, 0.1]))
