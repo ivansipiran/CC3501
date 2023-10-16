@@ -66,8 +66,40 @@ if __name__ == "__main__":
 
     graph = SceneGraph(controller)
 
+    graph.add_node("sun",
+                   pipeline=textured_mesh_lit_pipeline,
+                   position=[0, 2, 0],  # Irrelevante, solo se define para posicionar la flecha
+                   rotation=[-3*np.pi/4, 0, 0],
+                   light=DirectionalLight(diffuse = [0, 0, 0], specular = [0, 0, 0], ambient = [0, 0, 0]))
+
+    graph.add_node("light",
+                   pipeline=textured_mesh_lit_pipeline,
+                   position=[1, 1, 1],
+                   light=PointLight(
+                       diffuse = [1, 0, 0], # rojo
+                       specular = [0, 0, 1], # azul
+                       ambient = [0, 0.15, 0], # verde
+                       #constant = 1.0,
+                       #linear = 0.7,
+                       #quadratic = 1.8
+                       )
+                    )
+
+    graph.add_node("spotlight",
+                   pipeline=textured_mesh_lit_pipeline,
+                   position=[-2, 1, -2],
+                   rotation=[-3*np.pi/4, np.pi/4, 0],
+                   light=SpotLight(
+                          diffuse = [1, 0, 0],
+                          specular = [0, 0, 1],
+                          ambient = [0.15, 0.15, 0.15],
+                          cutOff = 0.91, # siempre mayor a outerCutOff
+                          outerCutOff = 0.82
+                   )
+                )
+
     graph.add_node("arrow",
-                   attach_to="root",
+                   attach_to="spotlight",
                    mesh=arrow,
                    position=[0, 0, -0.5],
                    rotation=[-np.pi, 0, 0],
@@ -80,12 +112,19 @@ if __name__ == "__main__":
     # specular: Color especular del material
     # ambient: Color ambiental del material
     # shininess: Exponente especular del material
-    material = Material(diffuse = [1, 1, 1], specular = [1, 1, 1], ambient = [1, 1, 1], shininess = 32)
+    material = Material(
+        diffuse = [1, 1, 1],
+        specular = [1, 1, 1],
+        ambient = [1, 1, 1],
+        shininess = 32)
+
+    textura = Texture("assets/wall1.jpg")
 
     graph.add_node("object",
-                   mesh = quad,
+                   mesh = cube,
                    pipeline = textured_mesh_lit_pipeline,
                    rotation = [-np.pi/2, 0, 0],
+                   texture=textura,
                    scale = [5, 5, 1],
                    material = material)
 
