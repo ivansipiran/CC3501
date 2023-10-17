@@ -114,7 +114,7 @@ class Model():
         glEnable(GL_CULL_FACE)
 
 class Material():
-    def __init__(self, ambient=[1, 1, 1], diffuse=[0.1, 0.1, 0.1], specular=[1, 1, 1], shininess=32.0):
+    def __init__(self, ambient=[1, 1, 1], diffuse=[1, 1, 1], specular=[1, 1, 1], shininess=32.0):
         self.ambient = np.array(ambient, dtype=np.float32)
         self.diffuse = np.array(diffuse, dtype=np.float32)
         self.specular = np.array(specular, dtype=np.float32)

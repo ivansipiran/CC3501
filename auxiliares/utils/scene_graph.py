@@ -46,7 +46,7 @@ class SceneGraph():
 
         if light is not None and isinstance(light, SpotLight):
             if self.num_spot_lights == 16:
-                raise ValueError("No se pueden agregar más de 16 PointLights")
+                raise ValueError("No se pueden agregar más de 16 SpotLights")
             self.num_spot_lights += 1
 
         self.graph.add_node(
@@ -107,6 +107,59 @@ class SceneGraph():
             current_pipeline = current_node["pipeline"]
             if current_pipeline is None:
                 continue
+
+            """ 
+            Setup de luces 
+            """
+            if current_node["light"] is not None:
+                current_pipelines = current_pipeline
+                if not isinstance(current_pipeline, list):
+                    current_pipelines = [current_pipeline]
+
+                for pipeline in current_pipelines:
+                    pipeline.use()
+                    if "u_viewPos" in pipeline.uniforms:
+                        pipeline["u_viewPos"] = self.controller.program_state["camera"].position[:3]
+                    if isinstance(current_node["light"], DirectionalLight):
+                        if "u_dirLight.direction" in pipeline.uniforms:
+                            pipeline["u_dirLight.direction"] = (transformations[src] @ self.get_forward(dst))[:3]
+                            pipeline["u_dirLight.ambient"] = current_node["light"].ambient
+                            pipeline["u_dirLight.diffuse"] = current_node["light"].diffuse
+                            pipeline["u_dirLight.specular"] = current_node["light"].specular
+                    elif isinstance(current_node["light"], PointLight):
+                        if "u_numPointLights" in pipeline.uniforms:
+                            pipeline["u_numPointLights"] = self.num_point_lights
+                            position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].position"] = position
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].ambient"] = current_node["light"].ambient
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].diffuse"] = current_node["light"].diffuse
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].specular"] = current_node["light"].specular
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].constant"] = current_node["light"].constant
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].linear"] = current_node["light"].linear
+                            pipeline[f"u_pointLights[{str(pointLightIndex)}].quadratic"] = current_node["light"].quadratic
+
+                    elif isinstance(current_node["light"], SpotLight):
+                        if "u_numSpotLights" in pipeline.uniforms:
+                            pipeline["u_numSpotLights"] = self.num_spot_lights
+                            position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].position"] = position
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].direction"] = (transformations[src] @ self.get_forward(dst))[:3]
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].ambient"] = current_node["light"].ambient
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].diffuse"] = current_node["light"].diffuse
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].specular"] = current_node["light"].specular
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].constant"] = current_node["light"].constant
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].linear"] = current_node["light"].linear
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].quadratic"] = current_node["light"].quadratic
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].cutOff"] = current_node["light"].cutOff
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].outerCutOff"] = current_node["light"].outerCutOff
+
+                if isinstance(current_node["light"], PointLight):
+                    pointLightIndex += 1
+                elif isinstance(current_node["light"], SpotLight):
+                    spotLightIndex += 1
+
+                continue
+
             current_pipeline.use()
             """ 
             Setup de cámara 
@@ -120,46 +173,6 @@ class SceneGraph():
 
                 if "u_projection" in current_pipeline.uniforms:
                     current_pipeline["u_projection"] = camera.get_projection()
-
-            """ 
-            Setup de luces 
-            """
-            if current_node["light"] is not None:
-                if "u_viewPos" in current_pipeline.uniforms:
-                    current_pipeline["u_viewPos"] = self.controller.program_state["camera"].position[:3]
-                if isinstance(current_node["light"], DirectionalLight):
-                    if "u_dirLight.direction" in current_pipeline.uniforms:
-                        current_pipeline["u_dirLight.direction"] = (transformations[src] @ self.get_forward(dst))[:3]
-                        current_pipeline["u_dirLight.ambient"] = current_node["light"].ambient
-                        current_pipeline["u_dirLight.diffuse"] = current_node["light"].diffuse
-                        current_pipeline["u_dirLight.specular"] = current_node["light"].specular
-                elif isinstance(current_node["light"], PointLight):
-                    if "u_numPointLights" in current_pipeline.uniforms:
-                        current_pipeline["u_numPointLights"] = self.num_point_lights
-                        position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].position"] = position
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].ambient"] = current_node["light"].ambient
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].diffuse"] = current_node["light"].diffuse
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].specular"] = current_node["light"].specular
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].constant"] = current_node["light"].constant
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].linear"] = current_node["light"].linear
-                        current_pipeline[f"u_pointLights[{str(pointLightIndex)}].quadratic"] = current_node["light"].quadratic
-                        pointLightIndex += 1
-                elif isinstance(current_node["light"], SpotLight):
-                    if "u_numSpotLights" in current_pipeline.uniforms:
-                        current_pipeline["u_numSpotLights"] = self.num_spot_lights
-                        position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].position"] = position
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].direction"] = (transformations[src] @ self.get_forward(dst))[:3]
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].ambient"] = current_node["light"].ambient
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].diffuse"] = current_node["light"].diffuse
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].specular"] = current_node["light"].specular
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].constant"] = current_node["light"].constant
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].linear"] = current_node["light"].linear
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].quadratic"] = current_node["light"].quadratic
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].cutOff"] = current_node["light"].cutOff
-                        current_pipeline[f"u_spotLights[{str(spotLightIndex)}].outerCutOff"] = current_node["light"].outerCutOff
-                        spotLightIndex += 1
 
             if current_node["mesh"] is not None:
                 """

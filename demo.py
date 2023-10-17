@@ -58,6 +58,10 @@ if __name__ == "__main__":
         get_path("auxiliares/shaders/textured_mesh.vert"),
         get_path("auxiliares/shaders/textured_mesh.frag"))
     
+    color_mesh_lit_pipeline = init_pipeline(
+        get_path("auxiliares/shaders/color_mesh_lit.vert"),
+        get_path("auxiliares/shaders/color_mesh_lit.frag"))
+    
     textured_mesh_lit_pipeline = init_pipeline(
         get_path("auxiliares/shaders/textured_mesh_lit.vert"),
         get_path("auxiliares/shaders/textured_mesh_lit.frag"))
@@ -75,7 +79,7 @@ if __name__ == "__main__":
     graph = SceneGraph(controller)
 
     graph.add_node("sun",
-                   pipeline=textured_mesh_lit_pipeline,
+                   pipeline=[color_mesh_lit_pipeline, textured_mesh_lit_pipeline],
                    position=[0, 2, 0],
                    light=DirectionalLight(diffuse = [0.5, 0.5, 0.5], specular = [0.5, 0.25, 0.5], ambient = [0.15, 0.15, 0.15]))
     graph.add_node("sun_arrow",
@@ -90,24 +94,24 @@ if __name__ == "__main__":
     graph.add_node("point_lights")
     graph.add_node("point_light1",
                     attach_to="point_lights",
-                    pipeline=textured_mesh_lit_pipeline,
+                    pipeline=[color_mesh_lit_pipeline, textured_mesh_lit_pipeline],
                     position=[8, 1, 8],
                     light=PointLight(diffuse = [0, 0, 1], specular = [1, 1, 0], ambient = [0.1, 0.1, 0.1]))
     
     graph.add_node("point_light2",
                     attach_to="point_lights",
-                    pipeline=textured_mesh_lit_pipeline,
+                    pipeline=[color_mesh_lit_pipeline, textured_mesh_lit_pipeline],
                     position=[-8, 1, -8],
                     light=PointLight(diffuse = [0, 1, 0], specular = [1, 0, 1], ambient = [0.1, 0.1, 0.1]))
     
     graph.add_node("point_light3",
                     attach_to="point_lights",
-                    pipeline=textured_mesh_lit_pipeline,
+                    pipeline=[color_mesh_lit_pipeline, textured_mesh_lit_pipeline],
                     position=[-8, 1, 8],
                     light=PointLight(diffuse = [1, 0, 0], specular = [0, 1, 1], ambient = [0.1, 0.1, 0.1]))
     
     graph.add_node("spotlight",
-                    pipeline=textured_mesh_lit_pipeline,
+                    pipeline=[color_mesh_lit_pipeline, textured_mesh_lit_pipeline],
                     position=[0, 3, 0],
                     rotation=[-np.pi/4, 0, 0],
                     light=SpotLight(diffuse = [1, 1, 1],
@@ -120,14 +124,23 @@ if __name__ == "__main__":
     # mesh_from_file() devuelve una lista de diccionarios, cada uno con la información de un mesh
     # [{id, mesh, texture}, ...]
     zorzal = mesh_from_file("assets/zorzal.obj")
+    graph.add_node("zorzal")
     for i in range(len(zorzal)):
         graph.add_node(zorzal[i]["id"],
-                    attach_to="root",
+                    attach_to="zorzal",
                     mesh=zorzal[i]["mesh"],
                     pipeline=textured_mesh_lit_pipeline,
                     material=Material(),
                     texture=zorzal[i]["texture"],
                     cull_face=False)
+        
+    auto = mesh_from_file("assets/auto.off")
+    graph.add_node(auto[0]["id"],
+                attach_to="root",
+                mesh=auto[0]["mesh"],
+                pipeline=color_mesh_lit_pipeline,
+                material=Material(),
+                cull_face=False)
 
     graph.add_node("cube",
                    attach_to="shapes",
