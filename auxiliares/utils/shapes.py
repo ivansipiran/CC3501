@@ -9,6 +9,12 @@ YELLOW = [1, 1, 0]
 WHITE = [1, 1, 1]
 BLACK = [0, 0, 0]
 
+GRAY = [0.5, 0.5, 0.5]
+ORANGE = [1, 0.5, 0]
+BROWN = [0.5, 0.25, 0]
+LIGHT_BLUE = [0.5, 0.5, 1]
+DARK_BLUE = [0, 0, 0.5]
+
 Axes = {
     'position': [
         -10, 0, 0,
