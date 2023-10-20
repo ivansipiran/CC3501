@@ -11,6 +11,7 @@ class SceneGraph():
         self.controller = controller
         self.num_point_lights = 0
         self.num_spot_lights = 0
+        self.transformations = {}
 
     def add_node(self,
                  name,
@@ -94,15 +95,15 @@ class SceneGraph():
     def draw(self):
         root_key = self.graph.graph["root"]
         edges = list(edge_dfs(self.graph, source=root_key))
-        transformations = {root_key: self.get_transform(root_key)}
+        self.transformations = {root_key: self.get_transform(root_key)}
         pointLightIndex = 0
         spotLightIndex = 0
 
         for src, dst in edges:
             current_node = self.graph.nodes[dst]
 
-            if not dst in transformations:
-                transformations[dst] = transformations[src] @ self.get_transform(dst)
+            if not dst in self.transformations:
+                self.transformations[dst] = self.transformations[src] @ self.get_transform(dst)
 
             current_pipeline = current_node["pipeline"]
             if current_pipeline is None:
@@ -122,14 +123,14 @@ class SceneGraph():
                         pipeline["u_viewPos"] = self.controller.program_state["camera"].position[:3]
                     if isinstance(current_node["light"], DirectionalLight):
                         if "u_dirLight.direction" in pipeline.uniforms:
-                            pipeline["u_dirLight.direction"] = (transformations[src] @ self.get_forward(dst))[:3]
+                            pipeline["u_dirLight.direction"] = (self.transformations[src] @ self.get_forward(dst))[:3]
                             pipeline["u_dirLight.ambient"] = current_node["light"].ambient
                             pipeline["u_dirLight.diffuse"] = current_node["light"].diffuse
                             pipeline["u_dirLight.specular"] = current_node["light"].specular
                     elif isinstance(current_node["light"], PointLight):
                         if "u_numPointLights" in pipeline.uniforms:
                             pipeline["u_numPointLights"] = self.num_point_lights
-                            position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
+                            position = (self.transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
                             pipeline[f"u_pointLights[{str(pointLightIndex)}].position"] = position
                             pipeline[f"u_pointLights[{str(pointLightIndex)}].ambient"] = current_node["light"].ambient
                             pipeline[f"u_pointLights[{str(pointLightIndex)}].diffuse"] = current_node["light"].diffuse
@@ -141,9 +142,9 @@ class SceneGraph():
                     elif isinstance(current_node["light"], SpotLight):
                         if "u_numSpotLights" in pipeline.uniforms:
                             pipeline["u_numSpotLights"] = self.num_spot_lights
-                            position = (transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
+                            position = (self.transformations[src] @ np.array([current_node["position"][0], current_node["position"][1], current_node["position"][2], 1], dtype=np.float32))[:3]
                             pipeline[f"u_spotLights[{str(spotLightIndex)}].position"] = position
-                            pipeline[f"u_spotLights[{str(spotLightIndex)}].direction"] = (transformations[src] @ self.get_forward(dst))[:3]
+                            pipeline[f"u_spotLights[{str(spotLightIndex)}].direction"] = (self.transformations[src] @ self.get_forward(dst))[:3]
                             pipeline[f"u_spotLights[{str(spotLightIndex)}].ambient"] = current_node["light"].ambient
                             pipeline[f"u_spotLights[{str(spotLightIndex)}].diffuse"] = current_node["light"].diffuse
                             pipeline[f"u_spotLights[{str(spotLightIndex)}].specular"] = current_node["light"].specular
@@ -197,8 +198,14 @@ class SceneGraph():
                 """
                 Setup de Mesh
                 """                
-                current_pipeline["u_model"] = np.reshape(transformations[dst], (16, 1), order="F")
+                current_pipeline["u_model"] = np.reshape(self.transformations[dst], (16, 1), order="F")
                 current_node["mesh"].draw(current_node["mode"], current_node["cull_face"])
 
                 if textured:
                     current_node["texture"].unbind()
+            
+    def find_position(self, node_name):
+        for src, dst in self.transformations.items():
+            if src == node_name:
+                return dst[:3, 3]
+        return None
