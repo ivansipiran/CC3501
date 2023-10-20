@@ -103,8 +103,20 @@ if __name__ == "__main__":
                     material = Material(),
                     position = [2, 0, 0])
     
+    collision_manager = CollisionManager()
 
+    controllable_collider = Sphere("controllable", 0.5)
+    #controllable_collider = AABB("controllable", np.array([-0.5, -0.5, -0.5]), np.array([0.5, 0.5, 0.5]))
+    controllable_collider.set_position(graph.find_position("controllable"))
+    collision_manager.add_collider(controllable_collider)
 
+    static_cube_collider = AABB("static_cube", np.array([-0.5, -0.5, -0.5]), np.array([0.5, 0.5, 0.5]))
+    static_cube_collider.set_position(graph.find_position("static_cube"))
+    collision_manager.add_collider(static_cube_collider)
+
+    moving_cube_collider = AABB("moving_cube", np.array([-0.5, -0.5, -0.5]), np.array([0.5, 0.5, 0.5]))
+    moving_cube_collider.set_position(graph.find_position("moving_cube"))
+    collision_manager.add_collider(moving_cube_collider)
 
     def update(dt):
         controller.program_state["total_time"] += dt
@@ -128,6 +140,24 @@ if __name__ == "__main__":
         camera.update()
 
         graph["moving_cube"]["position"][0] = np.cos(controller.program_state["total_time"]) * 2
+
+        # Hay que actualizar las posiciones de cada collider en cada frame
+        controllable_collider.set_position(graph.find_position("controllable"))
+        # a pesar de que static_cube no se mueve, hay que actualizarlo ya que el grafo de escena es quien actualiza su posición,
+        # inicialmente su posición es 0, 0, 0 y cambia en el primer frame dibujado
+        static_cube_collider.set_position(graph.find_position("static_cube"))
+        moving_cube_collider.set_position(graph.find_position("moving_cube"))
+
+        # Aqui pregunto por el objeto al que quiero hacerle la consulta
+        collision_result = collision_manager.check_collision("controllable")
+
+        graph["controllable"]["material"].diffuse = [1, 1, 1]
+        graph["static_cube"]["material"].diffuse = [1, 1, 1]
+        graph["moving_cube"]["material"].diffuse = [1, 1, 1]
+
+        if len(collision_result) != 0:
+            for c in collision_result:
+                graph[c]["material"].diffuse = [1, 0, 0]
 
         
 
