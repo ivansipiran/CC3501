@@ -67,6 +67,10 @@ class SceneGraph():
         
         self.graph.add_edge(attach_to, name)
 
+    def remove_node(self, name):
+        if name in self.graph.nodes:
+            self.graph.remove_node(name)
+
     def __getitem__(self, name):
         if name not in self.graph.nodes:
             raise KeyError(f"Node {name} not in graph")
