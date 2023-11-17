@@ -77,6 +77,9 @@ class SceneGraph():
 
         return self.graph.nodes[name]
     
+    def __contains__(self, name):
+        return name in self.graph.nodes
+    
     def __setitem__(self, name, value):
         if name not in self.graph.nodes:
             raise KeyError(f"Node {name} not in graph")
