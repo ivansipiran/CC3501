@@ -2,7 +2,7 @@ import pyglet
 from OpenGL import GL
 import numpy as np
 import sys
-from Box2D import b2EdgeShape, b2CircleShape, b2World
+from Box2D import b2World
 
 # No es necesario este bloque de código si se ejecuta desde la carpeta raíz del repositorio
 # v
@@ -15,12 +15,11 @@ sys.path.append('../../')
 import auxiliares.utils.shapes as shapes
 from auxiliares.utils.camera import FreeCamera
 from auxiliares.utils.scene_graph import SceneGraph
-from auxiliares.utils.drawables import Model, DirectionalLight, Material, PointLight
-from auxiliares.utils.helpers import init_axis, init_pipeline, mesh_from_file, get_path
-import grafica.transformations as tr
+from auxiliares.utils.drawables import Model, DirectionalLight, Material
+from auxiliares.utils.helpers import init_axis, init_pipeline, get_path
 
-WIDTH = 640
-HEIGHT = 640
+WIDTH = 1280
+HEIGHT = 720
 
 class Controller(pyglet.window.Window):
     def __init__(self, title, *args, **kargs):
@@ -100,29 +99,65 @@ if __name__ == "__main__":
                     scale = [0.5, 0.5, 1],
                     material = Material(diffuse = [1, 0, 0]))
     
+    graph.add_node("wagon",
+                    mesh = cube,
+                    pipeline = color_mesh_lit_pipeline,
+                    scale = [0.5, 0.5, 0.5],
+                    material = Material(diffuse = [0, 1, 0]))
+    
+    world = b2World(gravity=(0, 0))
+    controller.program_state["world"] = world
+
+    locomotive = world.CreateDynamicBody(position=(0, 0), angle=0, linearDamping=0.75, angularDamping=0.5)
+    locomotive.CreatePolygonFixture(box=(0.25, 0.5), density=4, friction=0.3)
+    controller.program_state["bodies"]["locomotive"] = locomotive
+
+    wagon = world.CreateDynamicBody(position=(0, -1), angle=0, linearDamping=0.5, angularDamping=0.5)
+    wagon.CreatePolygonFixture(box=(0.25, 0.25), density=1, friction=0.3)
+    controller.program_state["bodies"]["wagon"] = wagon
+
+    world.CreateRevoluteJoint(bodyA=locomotive, bodyB=wagon, anchor=(0, -0.5), collideConnected=True)
 
     def update_world(dt):
         controller.program_state["total_time"] += dt
+        controller.program_state["world"].Step(dt, controller.program_state["vel_iters"], controller.program_state["pos_iters"])
+
+        graph["locomotive"]["position"][0] = locomotive.position[0]
+        graph["locomotive"]["position"][2] = locomotive.position[1]
+        graph["locomotive"]["rotation"][1] = -locomotive.angle
+
+        graph["wagon"]["position"][0] = wagon.position[0]
+        graph["wagon"]["position"][2] = wagon.position[1]
+        graph["wagon"]["rotation"][1] = -wagon.angle
+
+        
 
     def update(dt):
         update_world(dt)
         camera = controller.program_state["camera"]
 
-        controllable = graph["locomotive"]
+        #controllable = graph["locomotive"]
+        controllable = controller.program_state["bodies"]["locomotive"]
 
         if controller.is_key_pressed(pyglet.window.key.W):
-            
-            controllable["position"][0] += graph.get_forward("locomotive")[0] * 2*dt
-            controllable["position"][2] += graph.get_forward("locomotive")[2] * 2*dt
+            forward = graph.get_forward("locomotive")
+            #controllable["position"][0] += graph.get_forward("locomotive")[0] * 2*dt
+            #controllable["position"][2] += graph.get_forward("locomotive")[2] * 2*dt
+            locomotive.ApplyForceToCenter((forward[0]*10, forward[2]*10), True)
+
 
         if controller.is_key_pressed(pyglet.window.key.S):
-            controllable["position"][0] -= graph.get_forward("locomotive")[0] * 2*dt
-            controllable["position"][2] -= graph.get_forward("locomotive")[2] * 2*dt
+            forward = graph.get_forward("locomotive")
+            #controllable["position"][0] -= graph.get_forward("locomotive")[0] * 2*dt
+            #controllable["position"][2] -= graph.get_forward("locomotive")[2] * 2*dt
+            locomotive.ApplyForceToCenter((-forward[0]*10, -forward[2]*10), True)
 
         if controller.is_key_pressed(pyglet.window.key.D):
-            controllable["rotation"][1] -= 2*dt
+            #controllable["rotation"][1] -= 2*dt
+            locomotive.angularVelocity = 1
         if controller.is_key_pressed(pyglet.window.key.A):
-            controllable["rotation"][1] += 2*dt
+            #controllable["rotation"][1] += 2*dt
+            locomotive.angularVelocity = -1
         
         if controller.is_key_pressed(pyglet.window.key._1):
             camera.type = "perspective"

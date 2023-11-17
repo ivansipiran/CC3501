@@ -2,7 +2,7 @@ import pyglet
 from OpenGL import GL
 import numpy as np
 import sys
-from Box2D import b2EdgeShape, b2CircleShape, b2World
+from Box2D import b2World
 
 # No es necesario este bloque de código si se ejecuta desde la carpeta raíz del repositorio
 # v
@@ -15,12 +15,11 @@ sys.path.append('../../')
 import auxiliares.utils.shapes as shapes
 from auxiliares.utils.camera import FreeCamera
 from auxiliares.utils.scene_graph import SceneGraph
-from auxiliares.utils.drawables import Model, DirectionalLight, Material, PointLight
+from auxiliares.utils.drawables import Model
 from auxiliares.utils.helpers import init_axis, init_pipeline, mesh_from_file, get_path
-import grafica.transformations as tr
 
-WIDTH = 640
-HEIGHT = 640
+WIDTH = 1280
+HEIGHT = 720
 
 class Controller(pyglet.window.Window):
     def __init__(self, title, *args, **kargs):
@@ -32,6 +31,7 @@ class Controller(pyglet.window.Window):
             "total_time": 0.0,
             "camera": None,
             "bodies": {},
+            "ball_on_air": False,
             "world": None,
             # parámetros para el integrador
             "vel_iters": 6,
@@ -81,6 +81,7 @@ if __name__ == "__main__":
                    scale=[0.5, 0.5, 0.5],
                    color=[1, 0, 0]
                    )
+
     graph.add_node("ground1",
                     mesh=quad,
                     pipeline=color_mesh_pipeline,
@@ -130,27 +131,72 @@ if __name__ == "__main__":
                     scale=[4, 1, 1],
                     color=[0, 0, 1]
                     )
+    
+    world = b2World(gravity=(0, -10))
+    controller.program_state["world"] = world
+
+    ground_friction = 10
+
+    ground1 = world.CreateStaticBody(position=(-5, -0.5))
+    ground1.CreatePolygonFixture(box=(5/2, 0.5/2), density=1, friction=ground_friction)
+
+    ground2 = world.CreateStaticBody(position=(-2, 0.5), angle=np.pi/4)
+    ground2.CreatePolygonFixture(box=(2.5/2, 0.5/2), density=1, friction=ground_friction)
+
+    ground3 = world.CreateStaticBody(position=(-0.5, 1.22))
+    ground3.CreatePolygonFixture(box=(2/2, 0.5/2), density=1, friction=ground_friction)
+
+    ground4 = world.CreateStaticBody(position=(2, 1.22))
+    ground4.CreatePolygonFixture(box=(2/2, 0.5/2), density=1, friction=ground_friction)
+
+    ground5 = world.CreateStaticBody(position=(3.5, 0.5), angle=-np.pi/4)
+    ground5.CreatePolygonFixture(box=(2.5/2, 0.5/2), density=1, friction=ground_friction)
+
+    ground6 = world.CreateStaticBody(position=(6, -0.5))
+    ground6.CreatePolygonFixture(box=(4/2, 0.5/2), density=1, friction=ground_friction)
+
+    ball = world.CreateDynamicBody(position=(0.5, 3))
+    ball.CreateCircleFixture(radius=0.5, density=1, friction=0.3)
+    controller.program_state["bodies"]["ball"] = ball
 
     def update_world(dt):
         controller.program_state["total_time"] += dt
+        world.Step(dt, controller.program_state["vel_iters"], controller.program_state["pos_iters"])
+
+        graph["ball"]["position"][0] = controller.program_state["bodies"]["ball"].position[0]
+        graph["ball"]["position"][1] = controller.program_state["bodies"]["ball"].position[1]
+
+        if(controller.program_state["bodies"]["ball"].contacts != []):
+            controller.program_state["ball_on_air"] = False
+        else:
+            controller.program_state["ball_on_air"] = True
 
     def update(dt):
         update_world(dt)
         camera = controller.program_state["camera"]
 
-        controllable = graph["ball"]
+        #controllable = graph["ball"]
+        controllable = controller.program_state["bodies"]["ball"]
 
         if controller.is_key_pressed(pyglet.window.key.D):
-            controllable["position"][0] += 2*dt
+            if (not controller.program_state["ball_on_air"]):
+                #controllable["position"][0] += 2*dt
+                #controllable.ApplyForceToCenter((10, 0), True)
+                #controllable.linearVelocity = (10, controllable.linearVelocity[1])
+                controllable.ApplyTorque(-10, True)
+                
         if controller.is_key_pressed(pyglet.window.key.A):
-            controllable["position"][0] -= 2*dt
+            if (not controller.program_state["ball_on_air"]):
+                #controllable["position"][0] -= 2*dt
+                #controllable.ApplyForceToCenter((-10, 0), True)
+                controllable.ApplyTorque(10, True)
         if controller.is_key_pressed(pyglet.window.key._1):
             camera.type = "perspective"
         if controller.is_key_pressed(pyglet.window.key._2):
             camera.type = "orthographic"
         
-        camera.position[0] = controllable["position"][0]
-        camera.position[1] = controllable["position"][1] + 2.5
+        camera.position[0] = graph["ball"]["position"][0]
+        camera.position[1] = graph["ball"]["position"][1] + 2.5
 
         camera.update()
 
@@ -163,6 +209,7 @@ if __name__ == "__main__":
     def on_key_press(symbol, modifiers):
         if symbol == pyglet.window.key.SPACE:
             print("Jump!")
+            controller.program_state["bodies"]["ball"].ApplyLinearImpulse((0, 5), controller.program_state["bodies"]["ball"].worldCenter, True) 
 
     @controller.event
     def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
