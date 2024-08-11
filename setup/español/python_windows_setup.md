@@ -82,7 +82,7 @@ Si no arroja error o no encontrado puede seguir, de lo contrario tiene que insta
 
 Ahora si puede instalar las librerías:
 
-    pip install numpy scipy matplotlib pyopengl glfw ipython jupyter pillow imgui[glfw]
+    pip install numpy scipy matplotlib pyopengl glfw ipython jupyter pillow imgui[glfw] pyglet trimesh networkx
 
 Es posible que se le pida actualizar algunas dependencias, ingrese 'y' para aceptar.
 
@@ -127,6 +127,6 @@ En la terminal. Si se despliega un menú con opciones, está todo bien. Si no fi
 
 Ahora sí debería tener pip, proceda a escribir
 
-    pip install numpy scipy matplotlib pyopengl glfw ipython jupyter pillow imgui[glfw]
+    pip install numpy scipy matplotlib pyopengl glfw ipython jupyter pillow imgui[glfw] pyglet trimesh networkx
 
 Y ahora debería poder correr todos los programas normalmente.
