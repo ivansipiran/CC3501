@@ -9,5 +9,5 @@ compuesto por diversas carpetas:
 - `auxiliares`: Material y código utilizado en clases auxiliares
 - `examples`: Ejemplo hechos con los paquetes y librerías del curso
 - `grafica`: Librería del curso
-- `setup`: Tutorial para la creación del ambiente e instalación de herramientas revise ([ir](/setup/espa%C3%B1ol/README.md))
+- `setup`: Tutorial para la creación del ambiente e instalación de herramientas revise ([ir](./setup/espa%C3%B1ol/README.md))
 
