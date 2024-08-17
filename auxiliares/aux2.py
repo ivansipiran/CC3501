@@ -6,6 +6,7 @@ from pyglet.gl import *
 WIDTH = 600
 HEIGHT = 600
 DEFINITION = 100
+TIME = 0
 
 window = pyglet.window.Window(WIDTH, HEIGHT, "Auxiliar 2")
 
@@ -94,14 +95,24 @@ void main()
     @window.event
     def on_draw():
         glClearColor(0.1, 0.1, 0.1, 0.0)
+
+        #Esta linea limpia la pantalla entre frames
+        window.clear()
+
         with pipeline as _:
             c1.draw()
             c2.draw()
 
-    @window.event
+    
+    #Añadimos un poco de movimiento
     def update(dt):
-        pass
+        global TIME
 
+        TIME += dt
+        #Usando funciones periodicas podemos producir movimiento periodico
+        c1.radius = (np.cos(TIME) + 1) * 0.5
+
+    pyglet.clock.schedule_interval(update, 1/60)
     pyglet.app.run()
 
     
