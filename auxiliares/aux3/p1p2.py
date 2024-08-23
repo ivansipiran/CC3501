@@ -4,8 +4,8 @@ import numpy as np
 from pyglet.gl import *
 import os
 import sys
-sys.path.append(os.path.dirname((os.path.dirname(__file__))))
-import grafica.transformations as tr
+sys.path.append(os.path.dirname(os.path.dirname((os.path.dirname(__file__)))))
+from grafica import transformations as tr
 
 
 WIDTH = 600
@@ -43,13 +43,12 @@ in vec3 position;
 in vec3 color;
 
 uniform float intensity;
-uniform mat4 transform;
 
 out vec3 fragColor;
 
 void main() {
     fragColor = color * intensity;
-    gl_Position = transform * vec4(position, 1.0f);
+    gl_Position = vec4(position, 1.0f);
 }
     """
 
@@ -64,16 +63,16 @@ void main()
     outColor = vec4(fragColor, 1.0f);
 }
     """
+    #hisFilePath = Path(__file__)
+    #print(os.path.dirname(__file__))
+    #thisFolderPath = os.path.dirname(thisFilePath)
 
     vert_program = pyglet.graphics.shader.Shader(vertex_source, "vertex")
     frag_program = pyglet.graphics.shader.Shader(fragment_source, "fragment")
     pipeline = pyglet.graphics.shader.ShaderProgram(vert_program, frag_program)
 
-    cow = file_to_vertexlist(__file__ + "/../assets/cow.obj", [1, 1, 1], pipeline)
-    rat = file_to_vertexlist(__file__ + "/../assets/rat.obj", [0, 1, 0], pipeline)
-
-    #para transform
-    theta = np.pi/4
+    cow = file_to_vertexlist(__file__ + "/../../assets/cow.obj", [1, 1, 1], pipeline)
+    rat = file_to_vertexlist(__file__ + "/../../assets/rat.obj", [0, 1, 0], pipeline)
 
     @window.event
     def on_draw():
@@ -85,19 +84,11 @@ void main()
         pipeline.use()
 
         pipeline["intensity"] = 0.5
-
-        transform = tr.rotationY(theta)
-        transform = np.reshape(transform, (16, 1), order="F")
-        pipeline["transform"] = transform
         cow.draw(GL_TRIANGLES)
         
+        pipeline["intensity"] = 1
+        rat.draw(GL_TRIANGLES)
 
-    #P3 2.
-    def update(dt):
-        global theta
-        theta += 0.05
-
-    pyglet.clock.schedule_interval(update, 1/60)
     pyglet.app.run()
 
     
