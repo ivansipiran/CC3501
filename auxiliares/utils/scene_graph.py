@@ -1,17 +1,20 @@
 from networkx import DiGraph, edge_dfs
 from OpenGL.GL import GL_TRIANGLES
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname((os.path.dirname(__file__)))))
 import grafica.transformations as tr
 import numpy as np
 from auxiliares.utils.drawables import DirectionalLight, PointLight, SpotLight, Texture
 
 class SceneGraph():
-    def __init__(self, controller=None):
+    def __init__(self, camera = None):
         self.graph = DiGraph(root="root")
         self.add_node("root")
-        self.controller = controller
         self.num_point_lights = 0
         self.num_spot_lights = 0
         self.transformations = {}
+        self.camera = camera
 
     def add_node(self,
                  name,
@@ -36,7 +39,7 @@ class SceneGraph():
         
         _texture = texture
         if mesh is not None:
-            mesh.init_gpu_data(pipeline)
+            #mesh.init_gpu_data(pipeline)
             if texture is None:
                 _texture = Texture()
 
@@ -127,7 +130,7 @@ class SceneGraph():
                 for pipeline in current_pipelines:
                     pipeline.use()
                     if "u_viewPos" in pipeline.uniforms:
-                        pipeline["u_viewPos"] = self.controller.program_state["camera"].position[:3]
+                        pipeline["u_viewPos"] = self.camera.position[:3]
                     if isinstance(current_node["light"], DirectionalLight):
                         if "u_dirLight.direction" in pipeline.uniforms:
                             pipeline["u_dirLight.direction"] = (self.transformations[src] @ self.get_forward(dst))[:3]
@@ -172,15 +175,13 @@ class SceneGraph():
             """ 
             Setup de cámara 
             """
-            if "camera" in self.controller.program_state:
-                camera = self.controller.program_state["camera"]
-                if camera is None:
-                    raise ValueError("Camera es None")
+            if self.camera is not None:
+
                 if "u_view" in current_pipeline.uniforms:
-                    current_pipeline["u_view"] = camera.get_view()
+                    current_pipeline["u_view"] = self.camera.get_view()
 
                 if "u_projection" in current_pipeline.uniforms:
-                    current_pipeline["u_projection"] = camera.get_projection()
+                    current_pipeline["u_projection"] = self.camera.get_projection()
 
             if current_node["mesh"] is not None:
                 """
@@ -206,7 +207,7 @@ class SceneGraph():
                 Setup de Mesh
                 """                
                 current_pipeline["u_model"] = np.reshape(self.transformations[dst], (16, 1), order="F")
-                current_node["mesh"].draw(current_node["mode"], current_node["cull_face"])
+                current_node["mesh"].draw(current_node["mode"])
 
                 if textured:
                     current_node["texture"].unbind()
