@@ -15,6 +15,7 @@ class Controller(Window):
         self.fov = 90
         super().set_exclusive_mouse(True)
 
+window = Controller(800, 800, "Auxiliar 4")
 
 class GameModel:
     def __init__(self, size, vertices, indices, pipeline) -> None:
@@ -130,7 +131,6 @@ void main() {
     floor.scale = [100] * 3
 
     scene = [cow, rat, tree, leaves, floor]
-    window = Controller(800, 800, "Auxiliar 4")
     cam = Camera(0, 1, 2, 5)
 
 

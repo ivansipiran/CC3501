@@ -12,6 +12,7 @@ class Controller(Window):
         super().__init__(*args, **kwargs)
         self.time = 0.0
 
+window = Controller(800, 800, "Auxiliar 4")
 
 
 class GameModel:
@@ -99,7 +100,6 @@ void main() {
     floor.scale = [100] * 3
 
     scene = [cow, rat, tree, leaves, floor]
-    window = Controller(800, 800, "Auxiliar 4")
 
 
     @window.event
