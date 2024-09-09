@@ -20,6 +20,7 @@ class Camera():
         return np.reshape(lookAt_matrix, (16, 1), order="F")
 
     def get_projection(self):
+        perspective_matrix = tr.identity()
         if self.type == "perspective":
             perspective_matrix = tr.perspective(90, self.width / self.height, 0.01, 100)
         elif self.type == "orthographic":
