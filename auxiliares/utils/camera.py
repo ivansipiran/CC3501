@@ -68,7 +68,7 @@ class FreeCamera(Camera):
         self.forward[2] = np.sin(self.yaw) * np.cos(self.pitch)
         self.forward = self.forward / np.linalg.norm(self.forward)
 
-        self.right = np.cross(self.forward, np.array([0, 1, 0], dtype=np.float32))
+        self.right = np.cross(np.array([0, 1, 0], dtype=np.float32), self.forward)
         self.right = self.right / np.linalg.norm(self.right)
 
         self.up = np.cross(self.right, self.forward)

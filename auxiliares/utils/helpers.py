@@ -23,6 +23,7 @@ def init_axis(controller):
     color_pipeline = ShaderProgram(Shader(color_vertex_source_code, "vertex"), Shader(color_fragment_source_code, "fragment"))
 
     axes = Model(shapes.Axes["position"])
+    # axes.init_gpu_data()
 
     axis_scene = SceneGraph(controller)
     axis_scene.add_node("axes", attach_to="root", mesh=axes, pipeline=color_pipeline, mode=GL_LINES)

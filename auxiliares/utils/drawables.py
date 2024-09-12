@@ -19,6 +19,8 @@ class Texture():
         self.minFilterMode = minFilterMode
         self.maxFilterMode = maxFilterMode
         self.flip_top_bottom = flip_top_bottom
+        self.width = 0
+        self.height = 0
 
         if path is not None:
             self.create_from_file(path)
@@ -34,6 +36,8 @@ class Texture():
 
     def create_from_file(self, path):
         image = Image.open(path)
+        self.width = image.size[0]
+        self.height = image.size[1]
         self.texture = texture_2D_setup(image, self.sWrapMode, self.tWrapMode, self.minFilterMode, self.maxFilterMode, self.flip_top_bottom)
 
     def bind(self):
@@ -73,7 +77,6 @@ class Model():
         self.position_data = position_data
         self.uv_data = uv_data
         self.normal_data = normal_data
-
         self.index_data = index_data
         if index_data is not None:
             self.index_data = np.array(index_data, dtype=np.uint32)
@@ -93,6 +96,10 @@ class Model():
             size += len(self.normal_data)
             count += 3
 
+        if "index" in pipeline.attributes:
+            size += len(self.uv_data)
+            count += 1
+
         if self.index_data is not None:
             self.gpu_data = pipeline.vertex_list_indexed(size // count, GL_TRIANGLES, self.index_data)
         else:
@@ -104,6 +111,9 @@ class Model():
         
         if "normal" in pipeline.attributes:
             self.gpu_data.normal[:] = self.normal_data
+
+        if "a_id" in pipeline.attributes:
+            self.gpu_data.index[:] = self.uv_data
 
     def draw(self, mode = GL_TRIANGLES, cull_face=True):
         if cull_face:

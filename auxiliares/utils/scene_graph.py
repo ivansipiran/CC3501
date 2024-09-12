@@ -39,7 +39,7 @@ class SceneGraph():
         
         _texture = texture
         if mesh is not None:
-            #mesh.init_gpu_data(pipeline)
+            mesh.init_gpu_data(pipeline)
             if texture is None:
                 _texture = Texture()
 
@@ -102,18 +102,23 @@ class SceneGraph():
         rotation_matrix = tr.rotationY(node["rotation"][1]) @ tr.rotationX(node["rotation"][0]) @ tr.rotationZ(node["rotation"][2])
         return rotation_matrix @ np.array([0, 0, 1, 0], dtype=np.float32)
 
-    def draw(self):
+    def update(self):
         root_key = self.graph.graph["root"]
         edges = list(edge_dfs(self.graph, source=root_key))
         self.transformations = {root_key: self.get_transform(root_key)}
+
+        for src, dst in edges:
+            if not dst in self.transformations:
+                self.transformations[dst] = self.transformations[src] @ self.get_transform(dst)
+
+    def draw(self):
+        root_key = self.graph.graph["root"]
+        edges = list(edge_dfs(self.graph, source=root_key))
         pointLightIndex = 0
         spotLightIndex = 0
 
         for src, dst in edges:
             current_node = self.graph.nodes[dst]
-
-            if not dst in self.transformations:
-                self.transformations[dst] = self.transformations[src] @ self.get_transform(dst)
 
             current_pipeline = current_node["pipeline"]
             if current_pipeline is None:
@@ -207,7 +212,7 @@ class SceneGraph():
                 Setup de Mesh
                 """                
                 current_pipeline["u_model"] = np.reshape(self.transformations[dst], (16, 1), order="F")
-                current_node["mesh"].draw(current_node["mode"])
+                current_node["mesh"].draw(current_node["mode"], current_node["cull_face"])
 
                 if textured:
                     current_node["texture"].unbind()
