@@ -99,7 +99,7 @@ class SceneGraph():
 
     def get_forward(self, node):
         node = self.graph.nodes[node]
-        rotation_matrix = tr.rotationY(node["rotation"][1]) @ tr.rotationX(node["rotation"][0]) @ tr.rotationZ(node["rotation"][2])
+        rotation_matrix = tr.rotationZ(node["rotation"][2]) @ tr.rotationY(node["rotation"][1]) @ tr.rotationX(node["rotation"][0]) 
         return rotation_matrix @ np.array([0, 0, 1, 0], dtype=np.float32)
 
     def update(self):

@@ -56,7 +56,7 @@ class FreeCamera(Camera):
         super().__init__(camera_type)
         self.position = np.array(position, dtype=np.float32)
         self.pitch = 0
-        self.yaw = 0
+        self.yaw = - np.pi / 2
         self.forward = np.array([0, 0, -1], dtype=np.float32)
         self.right = np.array([1, 0, 0], dtype=np.float32)
         self.up = np.array([0, 1, 0], dtype=np.float32)
