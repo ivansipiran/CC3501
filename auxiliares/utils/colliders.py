@@ -1,21 +1,26 @@
 import numpy as np
 
+
 class Collider:
     def __init__(self, name):
         self.name = name
-        self.type = "undefined"
-    
+
     def set_position(self, position):
         pass
 
     def detect_collision(self, other):
         return False
 
+    def detect_collision_with_aabb(self, aabb):
+        return False
+
+    def detect_collision_with_sphere(self, sphere):
+        return False
+
 
 class AABB(Collider):
     def __init__(self, name, min, max):
         super().__init__(name)
-        self.type = "AABB"
         self.minSize = min
         self.maxSize = max
         self.min = np.array(min)
@@ -26,24 +31,27 @@ class AABB(Collider):
             return
         self.min = np.array(position) + self.minSize
         self.max = np.array(position) + self.maxSize
-    
-    def detect_collision(self, other):
-        if other.type == "AABB":
-            return (self.min[0] <= other.max[0] and self.max[0] >= other.min[0]) and \
-                   (self.min[1] <= other.max[1] and self.max[1] >= other.min[1]) and \
-                   (self.min[2] <= other.max[2] and self.max[2] >= other.min[2])
-        if other.type == "Sphere":
-            distance = np.linalg.norm(other.center - np.maximum(self.min, np.minimum(other.center, self.max)))
-            return distance <= other.radius
 
-        else:
-            return False
+    def detect_collision(self, other):
+        return other.detect_collision_with_aabb(self)
+
+    def detect_collision_with_aabb(self, aabb):
+        return (
+            (self.min[0] <= aabb.max[0] and self.max[0] >= aabb.min[0])
+            and (self.min[1] <= aabb.max[1] and self.max[1] >= aabb.min[1])
+            and (self.min[2] <= aabb.max[2] and self.max[2] >= aabb.min[2])
+        )
+
+    def detect_collision_with_sphere(self, sphere):
+        distance = np.linalg.norm(
+            sphere.center - np.maximum(self.min, np.minimum(sphere.center, self.max))
+        )
+        return distance <= sphere.radius
 
 
 class Sphere(Collider):
     def __init__(self, name, radius):
         super().__init__(name)
-        self.type = "Sphere"
         self.radius = radius
         self.center = np.array([0, 0, 0])
 
@@ -51,17 +59,19 @@ class Sphere(Collider):
         if (position is None) or (len(position) != 3):
             return
         self.center = np.array(position)
-    
+
     def detect_collision(self, other):
-        if other.type == "Sphere":
-            distance = self.center - other.center
-            return distance.dot(distance) <= (self.radius + other.radius) ** 2
-        if other.type == "AABB":
-            distance = np.linalg.norm(self.center - np.maximum(other.min, np.minimum(self.center, other.max)))
-            return distance <= self.radius
-            
-        else:
-            return False
+        return other.detect_collision_with_sphere(self)
+
+    def detect_collision_with_aabb(self, aabb):
+        distance = np.linalg.norm(
+            self.center - np.maximum(aabb.min, np.minimum(self.center, aabb.max))
+        )
+        return distance <= self.radius
+
+    def detect_collision_with_sphere(self, sphere):
+        distance = self.center - sphere.center
+        return distance.dot(distance) <= (self.radius + sphere.radius) ** 2
 
 
 class CollisionManager:
@@ -76,7 +86,7 @@ class CollisionManager:
             if c.name == name:
                 return c
         return None
-    
+
     def set_position(self, name, position):
         collider = self[name]
         if collider is not None:
@@ -93,3 +103,4 @@ class CollisionManager:
                 result.append(c.name)
 
         return result
+

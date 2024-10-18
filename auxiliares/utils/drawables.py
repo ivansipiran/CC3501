@@ -112,9 +112,6 @@ class Model():
         if "normal" in pipeline.attributes:
             self.gpu_data.normal[:] = self.normal_data
 
-        if "a_id" in pipeline.attributes:
-            self.gpu_data.index[:] = self.uv_data
-
     def draw(self, mode = GL_TRIANGLES, cull_face=True):
         if cull_face:
             glEnable(GL_CULL_FACE)
