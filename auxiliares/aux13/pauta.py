@@ -114,15 +114,15 @@ def bezier_surface(control_points, u_steps, v_steps):
     triangles = np.array(triangles)
     return surface_points.flatten(), surface_normals.flatten(), triangles.flatten()
 
-# Example usage
+
 control_points = np.array([
     [[0, 0, 0], [0, 1, 1], [0, 2, 0]],
     [[1, 0, 1], [1, 1, 2], [1, 2, 1]],
     [[2, 0, 0], [2, 1, 1], [2, 2, 0]]
-])  # A 3x3 grid of control points
+])  
 
-u_steps = 10  # Resolution in the u-direction
-v_steps = 10  # Resolution in the v-direction
+u_steps = 10 
+v_steps = 10  
 
 surface_points, surface_normals, triangles = bezier_surface(control_points, u_steps, v_steps)
 
