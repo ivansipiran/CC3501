@@ -103,6 +103,7 @@ if __name__ == "__main__":
     cam = MyCam([0.5, 2, 0.5])
 
     world = SceneGraph(cam)
+    outline_world = SceneGraph(cam)
 
     atlas = Texture(
         "assets/atlas.png", minFilterMode=GL_NEAREST, maxFilterMode=GL_NEAREST
